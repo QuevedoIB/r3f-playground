@@ -8,3 +8,9 @@ html {
   width: 100vw;
   overflow: hidden;
 }
+
+.label p {
+  margin-bottom: 0;
+  font-size: 24px;
+  user-select: none;
+}
