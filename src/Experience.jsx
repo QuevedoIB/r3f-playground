@@ -8,6 +8,7 @@ import {
   AccumulativeShadows,
   RandomizedLight,
   ContactShadows,
+  Sky,
   // TransformControls,
   // PivotControls,
   // Html,
@@ -43,6 +44,12 @@ const Experience = () => {
       min: 0,
       max: 10,
       step: 0.01,
+    },
+  });
+
+  const { sunPosition } = useControls("Sky", {
+    sunPosition: {
+      value: [1, 2, 3], // Use Sphere class from ThreeJS to use a proper vector 3 spherical coordinates and not random ones to proper position sun
     },
   });
 
@@ -82,11 +89,12 @@ const Experience = () => {
         blur={contactShadowControls.blur}
         frames={1} //bake
       />
+      <Sky sunPosition={sunPosition} />
       <OrbitControls makeDefault />
       <directionalLight
         ref={directionLightRef}
         castShadow
-        position={[1, 2, 3]}
+        position={sunPosition}
         intensity={4.5}
         shadow-mapSize={[1024, 1024]}
       />
