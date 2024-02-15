@@ -1,84 +1,88 @@
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
   OrbitControls,
-  Text3D,
-  useMatcapTexture,
+  useGLTF,
+  useTexture,
   Center,
+  Sparkles,
+  shaderMaterial,
 } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { extend, useFrame } from "@react-three/fiber";
 
-import Model from "./Model";
-import Hamburger from "./Hamburger";
-import Fox from "./Fox";
+import portalVertexShader from "./shaders/portal/vertex.glsl";
+import portalFragmentShader from "./shaders/portal/fragment.glsl";
 
-const torusGeometry = new THREE.TorusGeometry();
-const material = new THREE.MeshMatcapMaterial();
+const PortalMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uColorStart: new THREE.Color("#ffffff"),
+    uColorEnd: new THREE.Color("#000000"),
+  },
+  portalVertexShader,
+  portalFragmentShader
+);
 
+extend({ PortalMaterial });
+
+// sparkes scales x y z axis because its a box based component
 const Experience = () => {
-  const donutsRef = useRef([]);
-  // const donutsGroupRef = useRef();
-  const [matcapTexture] = useMatcapTexture("7B5254_E9DCC7_B19986_C8AC91", 256); //MATCAP name + size, smaller = better perf
-  const donutsArr = Array(100).fill("");
-  const getRandomPosition = () => (Math.random() - 0.5) * 20;
-  // const [torusRef, setTorusRef] = useState();
-  useEffect(() => {
-    // Set encoding / color space to matcap since material is in native three js
-    matcapTexture.colorSpace = THREE.SRGBColorSpace;
-    matcapTexture.needsUpdate = true;
+  const portalMaterialRef = useRef();
+  const { nodes } = useGLTF("./model/portal.glb");
+  const bakedTexture = useTexture("./model/baked.jpg");
+  console.log({ nodes });
 
-    // set matcap to material after hook loaded and we have access to it
-    material.matcap = matcapTexture;
-    material.needsUpdate = true;
-  }, []);
-
-  useFrame((state, delta) => {
-    // for (const donut of donutsGroupRef.current.children) {
-    //   donut.rotation.y += delta * 0.5;
-    // }
+  useFrame((_, delta) => {
+    portalMaterialRef.current.uTime += delta;
   });
 
   return (
     <>
-      {/* <torusGeometry ref={setTorusRef} /> */}
-
+      <color args={["#030202"]} attach="background" />
       <Perf position="top-left" />
       <OrbitControls makeDefault />
-      {/* 
-      <mesh scale={1.5}>
-        <boxGeometry />
-        <meshNormalMaterial />
-      </mesh> */}
       <Center>
-        <Text3D
-          font="./fonts/helvetiker_regular.typeface.json"
-          material={material}
-        >
-          {/* TEST R3F <meshMatcapMaterial matcap={matcapTexture} /> */}
-          TEXT
-        </Text3D>
-      </Center>
-      {/* <group ref={donutsGroupRef}> */}
-      {donutsArr.map((_, i) => (
         <mesh
-          ref={(el) => (donutsRef.current[i] = el)}
-          key={i}
-          position={[
-            getRandomPosition(),
-            getRandomPosition(),
-            getRandomPosition(),
-          ]}
-          scale={0.2 + Math.random() * 0.2}
-          rotation={[Math.random() * Math.PI, Math.random() * Math.PI, 0]}
-          // geometry={torusRef}
-          material={material}
-          geometry={torusGeometry}
+          geometry={nodes.poleLightA.geometry}
+          position={nodes.poleLightA.position}
         >
-          {/* <meshMatcapMaterial matcap={matcapTexture} /> */}
+          <meshBasicMaterial color="#ffffe5" />
         </mesh>
-      ))}
-      {/* </group> */}
+        <mesh
+          geometry={nodes.poleLightB.geometry}
+          position={nodes.poleLightB.position}
+        >
+          <meshBasicMaterial color="#ffffe5" />
+        </mesh>
+        <mesh geometry={nodes.baked.geometry}>
+          <meshBasicMaterial map={bakedTexture} map-flipY={false} />
+        </mesh>
+        <mesh
+          geometry={nodes.portalLight.geometry}
+          position={nodes.portalLight.position}
+          rotation={nodes.portalLight.rotation}
+        >
+          {/* <shaderMaterial
+            vertexShader={portalVertexShader}
+            fragmentShader={portalFragmentShader}
+            uniforms={{
+              uTime: { value: 0 },
+              uColorStart: { value: new THREE.Color("#ffffff") },
+              uColorEnd: { value: new THREE.Color("#000000") },
+            }}
+          /> */}
+          <portalMaterial ref={portalMaterialRef} />
+        </mesh>
+
+        <Sparkles
+          size={6}
+          scale={[4, 2, 4]}
+          position-y={1}
+          speed={0.2}
+          count={40}
+        />
+      </Center>
     </>
   );
 };

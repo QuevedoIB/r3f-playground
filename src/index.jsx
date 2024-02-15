@@ -6,21 +6,12 @@ import { Canvas } from "@react-three/fiber";
 import Experience from "./Experience";
 
 const root = ReactDOM.createRoot(document.querySelector("#root"));
-// const onCanvasCreate = ({ gl, scene }) => {
-//   // gl.setClearColor("red", 1) color + alpha
-//   // scene.background = new THREE.Color("#ff0000")
-// };
-
-// onCreated={onCanvasCreate}
-
+// flat removes tone mapping that r3f adds by default and messes up model tone mapping made on blender
 const App = () => {
   return (
     <StrictMode>
       <Leva collapsed />
-      <Canvas
-      // shadows
-      >
-        <color args={["ivory"]} attach="background" />
+      <Canvas flat>
         <Experience />
       </Canvas>
     </StrictMode>
