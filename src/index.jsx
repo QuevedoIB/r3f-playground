@@ -11,7 +11,7 @@ const App = () => {
   return (
     <StrictMode>
       <Leva collapsed />
-      <Canvas flat>
+      <Canvas>
         <Experience />
       </Canvas>
     </StrictMode>
